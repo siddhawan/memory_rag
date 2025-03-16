@@ -15,11 +15,11 @@ class Config:
     class Model:
         EMBEDDINGS = "BAAI/bge-base-en-v1.5"
         RERANKER = "ms-marco-MiniLM-L-12-v2"
-        LOCAL_LLM = "smollm2:360m"
+        LOCAL_LLM = "HuggingFaceTB/SmolLM2-360M-Instruct"
         REMOTE_LLM = "llama-3.1-8b-instant"
         TEMPERATURE = 0.0
         MAX_TOKENS = 8000
-        USE_LOCAL = False
+        USE_LOCAL = True
 
     class Retriever:
         USE_RERANKER = True
