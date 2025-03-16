@@ -19,7 +19,7 @@ class Config:
         REMOTE_LLM = "llama-3.1-8b-instant"
         TEMPERATURE = 0.0
         MAX_TOKENS = 8000
-        USE_LOCAL = True
+        USE_LOCAL = False
 
     class Retriever:
         USE_RERANKER = True

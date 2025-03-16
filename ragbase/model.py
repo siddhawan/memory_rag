@@ -7,7 +7,7 @@ from langchain_core.language_models import BaseLanguageModel
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
-
+from langchain_huggingface import HuggingFacePipeline
 from ragbase.config import Config
 
 
