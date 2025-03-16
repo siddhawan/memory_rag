@@ -25,6 +25,7 @@ Context:
 {context}
 
 Use markdown formatting where appropriate.
+Please give confidence score for each answer.
 """
 
 
@@ -53,7 +54,7 @@ def input_guardrail(user_input):
 
 def create_chain(llm: BaseLanguageModel, retriever: VectorStoreRetriever) -> Runnable:
     from langchain_core.runnables.base import RunnableLambda
-    
+
     # Apply input guardrail
     validate = RunnableLambda(input_guardrail)
     
