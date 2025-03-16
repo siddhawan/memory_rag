@@ -41,8 +41,39 @@ def format_documents(documents: List[Document]) -> str:
 
     return remove_links("\n".join(texts))
 
+def input_guardrail(user_input):
+    prohibited_words = ["idiot", "stupid", "dumb"]
+    
+    if any(word in user_input['question'].lower() for word in prohibited_words):
+        # Add a special flag to indicate prohibited content
+        user_input["prohibited"] = True
+        user_input["warning"] = "Warning: Your input contains words that may be inappropriate. Please revise your question."
+    
+    return user_input
 
 def create_chain(llm: BaseLanguageModel, retriever: VectorStoreRetriever) -> Runnable:
+    from langchain_core.runnables.base import RunnableLambda
+    
+    # Apply input guardrail
+    validate = RunnableLambda(input_guardrail)
+    
+    # Define a branch function that checks for prohibited content
+    def branch_on_prohibited(input_dict):
+        if input_dict.get("prohibited", False):
+            # If prohibited, return the warning directly
+            return input_dict["warning"]
+        
+        # Otherwise, continue with the normal chain
+        return (
+            RunnablePassthrough.assign(
+                context=itemgetter("question") 
+                | retriever.with_config({"run_name": "context_retriever"})
+                | format_documents
+            )
+            | prompt
+            | llm
+        ).invoke(input_dict)
+    
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", SYSTEM_PROMPT),
@@ -51,15 +82,7 @@ def create_chain(llm: BaseLanguageModel, retriever: VectorStoreRetriever) -> Run
         ]
     )
 
-    chain = (
-        RunnablePassthrough.assign(
-            context=itemgetter("question")
-            | retriever.with_config({"run_name": "context_retriever"})
-            | format_documents
-        )
-        | prompt
-        | llm
-    )
+    chain = validate | RunnableLambda(branch_on_prohibited)
 
     return RunnableWithMessageHistory(
         chain,
@@ -83,4 +106,8 @@ async def ask_question(chain: Runnable, question: str, session_id: str):
         if event_type == "on_retriever_end":
             yield event["data"]["output"]
         if event_type == "on_chain_stream":
-            yield event["data"]["chunk"].content
+            # Check if the chunk is a string (warning message) or an object with content
+            if isinstance(event["data"]["chunk"], str):
+                yield event["data"]["chunk"]
+            else:
+                yield event["data"]["chunk"].content

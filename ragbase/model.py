@@ -1,9 +1,10 @@
-from langchain_community.chat_models import ChatOllama
-from langchain_community.document_compressors.flashrank_rerank import FlashrankRerank
+
+from langchain_community.document_compressors.flashrank_rerank import \
+    FlashrankRerank
 from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 from langchain_core.language_models import BaseLanguageModel
 from langchain_groq import ChatGroq
-
+from langchain_ollama import ChatOllama
 from ragbase.config import Config
 
 
@@ -20,6 +21,7 @@ def create_llm() -> BaseLanguageModel:
             temperature=Config.Model.TEMPERATURE,
             model_name=Config.Model.REMOTE_LLM,
             max_tokens=Config.Model.MAX_TOKENS,
+            groq_api_key='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'
         )
 
 

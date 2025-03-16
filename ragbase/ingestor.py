@@ -7,13 +7,14 @@ from langchain_core.vectorstores import VectorStore
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_qdrant import Qdrant
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
+from langchain_qdrant import FastEmbedSparse, RetrievalMode
 from ragbase.config import Config
-
+from langchain_qdrant import QdrantVectorStore
 
 class Ingestor:
     def __init__(self):
         self.embeddings = FastEmbedEmbeddings(model_name=Config.Model.EMBEDDINGS)
+        self.sparse_embeddings = FastEmbedSparse(model_name="Qdrant/bm25")
         self.semantic_splitter = SemanticChunker(
             self.embeddings, breakpoint_threshold_type="interquartile"
         )
@@ -33,9 +34,17 @@ class Ingestor:
                     self.semantic_splitter.create_documents([document_text])
                 )
             )
-        return Qdrant.from_documents(
+
+
+        
+
+        return QdrantVectorStore.from_documents(
             documents=documents,
             embedding=self.embeddings,
+            sparse_embedding=self.sparse_embeddings,
+            # location=":memory:",
+            # collection_name="my_documents",
             path=Config.Path.DATABASE_DIR,
             collection_name=Config.Database.DOCUMENTS_COLLECTION,
+            retrieval_mode=RetrievalMode.HYBRID,
         )
